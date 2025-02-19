@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Alert, AlertDescription } from './components/ui/alert';
 import { LogOut, User, Award, Target, Book, ArrowUpRight, Code, GitBranch } from 'lucide-react';
@@ -14,6 +14,30 @@ const App: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Check for existing token on component mount
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          setIsLoading(true);
+          const profileData = await fetchUserProfile();
+          setUserData(profileData);
+          setIsLoggedIn(true);
+        } catch (err) {
+          console.error('Error fetching profile:', err);
+          // If there's an error, the token might be invalid
+          localStorage.removeItem('token');
+          setIsLoggedIn(false);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    checkLoginStatus();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +62,17 @@ const App: React.FC = () => {
     setUsername('');
     setPassword('');
   };
+
+  if (isLoading && !isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isLoggedIn) {
     return (

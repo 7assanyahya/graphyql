@@ -80,6 +80,7 @@ const queries = {
             user {
                 id
                 login
+                auditRatio
                 transactions(where: {type: {_eq: "xp"}}, order_by: {createdAt: asc}) {
                     id
                     amount
@@ -122,7 +123,7 @@ export const processUserData = (rawData: UserProfileResponse): ProcessedUserData
 
     const totalXP = user.transactions.reduce((sum: number, tx: { amount: number }) => sum + tx.amount, 0);
    
-    const auditRatio = 0
+    const auditRatio = user.auditRatio.toFixed(1);
 
     // Process XP progress over time
     const xpProgress = user.transactions.reduce((acc: Array<{ month: string; xp: number }>, tx: { createdAt: string; amount: number }) => {
