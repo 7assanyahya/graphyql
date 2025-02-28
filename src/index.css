@@ -1,12 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Shadows+Into+Light&display=swap');
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Special Elite', cursive;
   line-height: 1.5;
   font-weight: 400;
-
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  color: #3C2F2F;
+  background: #8B5A2B;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -14,55 +14,79 @@
 }
 
 a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+  font-family: 'Shadows Into Light', cursive;
+  font-weight: bold;
+  color: #CC0000;
+  text-decoration: underline wavy;
+  transition: color 0.3s ease;
 }
+
 a:hover {
-  color: #535bf2;
+  color: #ff3333;
 }
 
 body {
   margin: 0;
+  padding: 0;
+  width: 100vw; /* Full width */
+  min-height: 100vh; /* Full height */
   display: flex;
   place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  background: #8B5A2B;
+  /* overflow: hidden; Prevent body scroll */
 }
 
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-family: 'Special Elite', cursive;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1.2;
+  font-weight: bold;
+  color: #3C2F2F;
+}
+
+h2 {
+  font-family: 'Shadows Into Light', cursive;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: bold;
+  color: #5C4033;
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  border-radius: 4px;
+  border: 2px solid #5C4033;
+  padding: 0.6rem 1.2rem;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-family: 'Shadows Into Light', cursive;
+  background: rgba(245, 245, 220, 0.9);
+  color: #3C2F2F;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.3s ease;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
+
 button:hover {
-  border-color: #646cff;
+  background: rgba(255, 255, 240, 0.9);
+  transform: rotate(1deg);
 }
+
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.4);
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: #3C2F2F;
+    background: #A67B5B;
   }
+
   a:hover {
-    color: #747bff;
+    color: #ff6666;
   }
+
   button {
-    background-color: #f9f9f9;
+    background: rgba(255, 255, 240, 0.9);
+    color: #3C2F2F;
   }
 }

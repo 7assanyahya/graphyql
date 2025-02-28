@@ -9,14 +9,10 @@ function Profile({ token, onLogout }) {
   const [auditsData, setAuditsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeGraph, setActiveGraph] = useState('xp');
 
   useEffect(() => {
     const fetchProfileData = async () => {
-      console.log("Using Token for Profile API:", token);
-
       if (!token || token.split('.').length !== 3) {
-        console.error("Invalid token format:", token);
         setError("Invalid authentication token.");
         setLoading(false);
         return;
@@ -35,7 +31,6 @@ function Profile({ token, onLogout }) {
         setProjectsData(projectsRes.progress);
         setAuditsData(auditsRes.transaction);
       } catch (err) {
-        console.error("Error fetching profile data:", err);
         setError(err.message || "Failed to load profile data.");
       } finally {
         setLoading(false);
@@ -96,88 +91,88 @@ function Profile({ token, onLogout }) {
   }
 
   return (
-    <div className="container">
-      <div className="header">
-        <div>
-          <h1>{userInfo?.login}'s Profile</h1>
-          <p>User ID: {userInfo?.id}</p>
-        </div>
-        <button className="btn" onClick={onLogout}>Logout</button>
-      </div>
-
-      <div className="profile-grid">
-        <div className="card">
-          <h2>Experience Points</h2>
-          <div className="stat-item">
-            <span className="stat-label">Total XP</span>
-            <span className="stat-value">{stats.xp.totalXP?.toLocaleString() || 0}</span>
+    <div className="app-container">
+      <div className="container">
+        <div className="board-layout">
+          {/* Profile Photo with Overlay */}
+          <div className="profile-photo-container">
+            <img src="/public/missing-person.jpg" alt={`${userInfo?.login}'s Photo`} className="profile-photo" />
+            <div className="photo-overlay">?</div>
           </div>
-          {stats.xp.topProjects?.map(([project, xp], index) => (
-            <div className="stat-item" key={index}>
-              <span className="stat-label">Top Project #{index + 1}</span>
-              <span className="stat-value">
-                {project} ({xp.toLocaleString()})
-              </span>
+
+          {/* Profile Info Card */}
+          <div className="card profile-card">
+            <h1>{userInfo?.login}'s Profile - MISSING</h1>
+            <p>User ID: {userInfo?.id}</p>
+            <button className="btn" onClick={onLogout}>Logout</button>
+          </div>
+
+          {/* Stats Cards with Varied Rotations */}
+          <div className="card" style={{ transform: 'rotate(-3deg)', top: '10%', left: '30%' }}>
+            <h2>Experience Points</h2>
+            <div className="stat-item">
+              <span className="stat-label">Total XP</span>
+              <span className="stat-value">{stats.xp.totalXP?.toLocaleString() || 0}</span>
             </div>
-          ))}
-        </div>
+            {stats.xp.topProjects?.map(([project, xp], index) => (
+              <div className="stat-item" key={index}>
+                <span className="stat-label">Top Project #{index + 1}</span>
+                <span className="stat-value">{project} ({xp.toLocaleString()})</span>
+              </div>
+            ))}
+          </div>
 
-        <div className="card">
-          <h2>Projects</h2>
-          <div className="stat-item">
-            <span className="stat-label">Pass Rate</span>
-            <span className="stat-value">{stats.projects.passRate?.toFixed(1) || 0}%</span>
+          <div className="card" style={{ transform: 'rotate(2deg)', top: '40%', left: '45%' }}>
+            <h2>Projects</h2>
+            <div className="stat-item">
+              <span className="stat-label">Pass Rate</span>
+              <span className="stat-value">{stats.projects.passRate?.toFixed(1) || 0}%</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Passed Projects</span>
+              <span className="stat-value">{stats.projects.passCount || 0}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Failed Projects</span>
+              <span className="stat-value">{stats.projects.failCount || 0}</span>
+            </div>
           </div>
-          <div className="stat-item">
-            <span className="stat-label">Passed Projects</span>
-            <span className="stat-value">{stats.projects.passCount || 0}</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Failed Projects</span>
-            <span className="stat-value">{stats.projects.failCount || 0}</span>
-          </div>
-        </div>
 
-        <div className="card">
-          <h2>Audits</h2>
-          <div className="stat-item">
-            <span className="stat-label">Audit Up/Down Ratio</span>
-            <span className="stat-value">{stats.audits.auditRatio?.toFixed(1) || 0}%</span>
+          <div className="card" style={{ transform: 'rotate(-1deg)', top: '15%', right: '10%' }}>
+            <h2>Audits</h2>
+            <div className="stat-item">
+              <span className="stat-label">Audit Up/Down Ratio</span>
+              <span className="stat-value">{stats.audits.auditRatio?.toFixed(1) || 0}%</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Up Votes</span>
+              <span className="stat-value">{stats.audits.upCount || 0}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Down Votes</span>
+              <span className="stat-value">{stats.audits.downCount || 0}</span>
+            </div>
           </div>
-          <div className="stat-item">
-            <span className="stat-label">Up Votes</span>
-            <span className="stat-value">{stats.audits.upCount || 0}</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Down Votes</span>
-            <span className="stat-value">{stats.audits.downCount || 0}</span>
-          </div>
-        </div>
-      </div>
 
-      <div className="graph-container">
-        <h2>Statistics</h2>
-        <div className="graph-tabs">
-          <div
-            className={`graph-tab ${activeGraph === 'xp' ? 'active' : ''}`}
-            onClick={() => setActiveGraph('xp')}
-          >
-            XP Progress
-          </div>
-          <div
-            className={`graph-tab ${activeGraph === 'projects' ? 'active' : ''}`}
-            onClick={() => setActiveGraph('projects')}
-          >
-            Project Success Rate
-          </div>
-        </div>
-
-        <div className="svg-container">
-          {activeGraph === 'xp' ? (
+          {/* Graphs */}
+          <div className="graph-tab" style={{ transform: 'rotate(3deg)', bottom: '10%', left: '10%' }}>
+            <h3>XP Progress Over Time</h3>
             <XpProgressGraph data={xpData} />
-          ) : (
+          </div>
+          <div className="graph-tab" style={{ transform: 'rotate(-2deg)', bottom: '10%', left: '40%' }}>
+            <h3>Project Pass/Fail Ratio</h3>
             <ProjectsRatioGraph passCount={stats.projects.passCount} failCount={stats.projects.failCount} />
-          )}
+          </div>
+
+          {/* Decorative Sticky Notes */}
+          <div className="sticky-note" style={{ top: '10%', left: '5%' }}>Place?</div>
+          <div className="sticky-note" style={{ top: '15%', left: '10%' }}>Time?</div>
+          <div className="sticky-note" style={{ bottom: '10%', right: '5%' }}>Lake house?</div>
+
+          {/* Decorative "MISSING" Poster */}
+          <div className="missing-poster">
+            <h2>MISSING</h2>
+          </div>
         </div>
       </div>
     </div>
