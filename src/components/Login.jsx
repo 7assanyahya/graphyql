@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { login } from '../services/api';
+import { login } from '../services/api'; // Assuming this is your API service
 
 function Login({ onLogin }) {
   const [identifier, setIdentifier] = useState('');
@@ -29,45 +29,53 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div className="login-container">
-      <div className="card">
-        <h1>Login to Your Profile</h1>
+    <div className="login-app-wrapper">
+      <div className="login-inner-container">
+        <div className="login-board-surface">
+          <div className="login-folder-card">
+            <h1>Login to Your Profile</h1>
 
-        {error && <div className="error-message">{error}</div>}
+            {error && (
+              <div className="login-error-text">
+                {error}
+              </div>
+            )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="identifier">Username or Email</label>
-            <input
-              type="text"
-              id="identifier"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              disabled={loading}
-              required
-            />
+            <form onSubmit={handleSubmit}>
+              <div className="login-input-group">
+                <label htmlFor="identifier">Username or Email</label>
+                <input
+                  type="text"
+                  id="identifier"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  disabled={loading}
+                  required
+                />
+              </div>
+
+              <div className="login-input-group">
+                <label htmlFor="password">Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="login-submit-btn"
+                disabled={loading}
+              >
+                {loading ? 'Logging in...' : 'Login'}
+              </button>
+            </form>
           </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="btn"
-            disabled={loading}
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );

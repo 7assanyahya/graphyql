@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react';
-import { executeQuery, QUERY_USER_INFO, QUERY_USER_XP, QUERY_USER_PROJECTS, QUERY_USER_AUDITS } from '../services/api';
-import { XpProgressGraph, ProjectsRatioGraph } from './SVGGraphs';
+import { 
+  executeQuery, 
+  QUERY_USER_INFO, 
+  QUERY_PROJECT_XP, 
+  QUERY_USER_SKILLS,
+  QUERY_USER_EVENTS
+} from '../services/api';
+import { XpProgressGraph, ProjectsRatioGraph, AuditRatioGraph } from './SVGGraphs';
 
 function Profile({ token, onLogout }) {
   const [userInfo, setUserInfo] = useState(null);
   const [xpData, setXpData] = useState(null);
-  const [projectsData, setProjectsData] = useState(null);
-  const [auditsData, setAuditsData] = useState(null);
+  const [skillsData, setSkillsData] = useState(null);
+  const [levelsData, setLevelsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -19,17 +25,34 @@ function Profile({ token, onLogout }) {
       }
 
       try {
-        const [userInfoRes, xpRes, projectsRes, auditsRes] = await Promise.all([
+        const [userInfoRes, projectXpRes, skillsRes, eventsRes] = await Promise.all([
           executeQuery(QUERY_USER_INFO, {}, token),
-          executeQuery(QUERY_USER_XP, {}, token),
-          executeQuery(QUERY_USER_PROJECTS, {}, token),
-          executeQuery(QUERY_USER_AUDITS, {}, token),
+          executeQuery(QUERY_PROJECT_XP, {}, token),
+          executeQuery(QUERY_USER_SKILLS, {}, token),
+          executeQuery(QUERY_USER_EVENTS, {}, token),
         ]);
 
         setUserInfo(userInfoRes.user[0]);
-        setXpData(xpRes.transaction);
-        setProjectsData(projectsRes.progress);
-        setAuditsData(auditsRes.transaction);
+        setXpData(projectXpRes.user[0]?.xps || []);
+        setSkillsData(skillsRes.transaction || []);
+        
+        // Process levels data
+        const processedLevels = eventsRes.event_user
+          ? eventsRes.event_user.reduce((acc, event) => {
+              // Group levels by their type/category
+              const category = event.eventId === 72 ? 'Hackathon' :
+                               event.eventId === 20 ? 'Web Dev' :
+                               event.eventId === 250 ? 'AI' : 
+                               'Other';
+              
+              if (!acc[category] || event.level > acc[category]) {
+                acc[category] = event.level;
+              }
+              return acc;
+            }, {})
+          : {};
+
+        setLevelsData(processedLevels);
       } catch (err) {
         setError(err.message || "Failed to load profile data.");
       } finally {
@@ -41,10 +64,11 @@ function Profile({ token, onLogout }) {
   }, [token]);
 
   const calculateStats = () => {
-    if (!xpData || !projectsData || !auditsData) {
-      return { xp: {}, projects: {}, audits: {} };
+    if (!userInfo || !xpData || !skillsData) {
+      return { xp: {}, audits: {}, skills: {}, levels: {} };
     }
 
+    // Previous calculations remain the same
     const totalXP = xpData.reduce((sum, tx) => sum + tx.amount, 0);
     const xpByProject = xpData.reduce((acc, tx) => {
       const project = tx.path.split('/').pop();
@@ -55,19 +79,22 @@ function Profile({ token, onLogout }) {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3);
 
-    const passCount = projectsData.filter(p => p.grade === 1).length;
-    const failCount = projectsData.filter(p => p.grade === 0).length;
-    const totalProjects = passCount + failCount;
-    const passRate = totalProjects ? (passCount / totalProjects) * 100 : 0;
+    const auditRatio = userInfo.auditRatio || 0;
+    const totalUp = userInfo.totalUp || 0;
+    const totalDown = userInfo.totalDown || 0;
 
-    const upCount = auditsData.filter(a => a.type === 'up').length;
-    const downCount = auditsData.filter(a => a.type === 'down').length;
-    const auditRatio = (upCount + downCount) ? (upCount / (upCount + downCount)) * 100 : 0;
+    const topSkills = skillsData
+      .slice(0, 5)
+      .map(skill => ({
+        name: skill.path.split('/').pop(),
+        amount: skill.amount
+      }));
 
     return {
       xp: { totalXP, topProjects },
-      projects: { passCount, failCount, passRate },
-      audits: { upCount, downCount, auditRatio },
+      audits: { auditRatio, totalUp, totalDown },
+      skills: { topSkills },
+      levels: levelsData || {}
     };
   };
 
@@ -101,14 +128,18 @@ function Profile({ token, onLogout }) {
           </div>
 
           {/* Profile Info Card */}
-          <div className="card profile-card">
-            <h1>{userInfo?.login}'s Profile - MISSING</h1>
-            <p>User ID: {userInfo?.id}</p>
+          <div className="card profile-card" style={{ transform: 'rotate(5deg)', top: '15%', left: '17%' }} >
+            <h1>{userInfo?.login}'s Profile</h1>
+            <h1>{userInfo?.firstName} {userInfo?.lastName}</h1>
+            <h1 style={{fontSize : "18px"}}>{userInfo?.email}</h1>
+            
             <button className="btn" onClick={onLogout}>Logout</button>
           </div>
 
-          {/* Stats Cards with Varied Rotations */}
-          <div className="card" style={{ transform: 'rotate(-3deg)', top: '10%', left: '30%' }}>
+         
+
+          {/* Rest of the existing components remain the same */}
+          <div className="card" style={{ transform: 'rotate(-3deg)', top: '10%', left: '39%' }}>
             <h2>Experience Points</h2>
             <div className="stat-item">
               <span className="stat-label">Total XP</span>
@@ -122,55 +153,53 @@ function Profile({ token, onLogout }) {
             ))}
           </div>
 
-          <div className="card" style={{ transform: 'rotate(2deg)', top: '40%', left: '45%' }}>
-            <h2>Projects</h2>
-            <div className="stat-item">
-              <span className="stat-label">Pass Rate</span>
-              <span className="stat-value">{stats.projects.passRate?.toFixed(1) || 0}%</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">Passed Projects</span>
-              <span className="stat-value">{stats.projects.passCount || 0}</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">Failed Projects</span>
-              <span className="stat-value">{stats.projects.failCount || 0}</span>
-            </div>
+          <div className="card" style={{ transform: 'rotate(2deg)', top: '46%', left: '62%' }}>
+            <h2>Skills</h2>
+            {stats.skills.topSkills?.map((skill, index) => (
+              <div className="stat-item" key={index}>
+                <span className="stat-label">{skill.name}</span>
+                <span className="stat-value">{skill.amount}</span>
+              </div>
+            ))}
           </div>
 
-          <div className="card" style={{ transform: 'rotate(-1deg)', top: '15%', right: '10%' }}>
+          <div className="card" style={{ transform: 'rotate(9deg)', top: '13%', right: '20%' }}>
             <h2>Audits</h2>
             <div className="stat-item">
-              <span className="stat-label">Audit Up/Down Ratio</span>
-              <span className="stat-value">{stats.audits.auditRatio?.toFixed(1) || 0}%</span>
+              <span className="stat-label">Audit Ratio</span>
+              <span className="stat-value">{stats.audits.auditRatio?.toFixed(1) || 0}</span>
             </div>
             <div className="stat-item">
               <span className="stat-label">Up Votes</span>
-              <span className="stat-value">{stats.audits.upCount || 0}</span>
+              <span className="stat-value">{stats.audits.totalUp || 0}</span>
             </div>
             <div className="stat-item">
               <span className="stat-label">Down Votes</span>
-              <span className="stat-value">{stats.audits.downCount || 0}</span>
+              <span className="stat-value">{stats.audits.totalDown || 0}</span>
             </div>
           </div>
 
           {/* Graphs */}
-          <div className="graph-tab" style={{ transform: 'rotate(3deg)', bottom: '10%', left: '10%' }}>
+          <div className="graph-tab" style={{ transform: 'rotate(-3deg)', bottom: '14%', left: '1%' }}>
             <h3>XP Progress Over Time</h3>
             <XpProgressGraph data={xpData} />
           </div>
-          <div className="graph-tab" style={{ transform: 'rotate(-2deg)', bottom: '10%', left: '40%' }}>
-            <h3>Project Pass/Fail Ratio</h3>
-            <ProjectsRatioGraph passCount={stats.projects.passCount} failCount={stats.projects.failCount} />
+          <div className="graph-tab" style={{ transform: 'rotate(2deg)', bottom: '9%', left: '32%' }}>
+            <h3>Skills Distribution</h3>
+            <ProjectsRatioGraph 
+              skillsData={stats.skills.topSkills} 
+              auditRatio={stats.audits.auditRatio} 
+            />
           </div>
-
+          
+            
           {/* Decorative Sticky Notes */}
-          <div className="sticky-note" style={{ top: '10%', left: '5%' }}>Place?</div>
-          <div className="sticky-note" style={{ top: '15%', left: '10%' }}>Time?</div>
-          <div className="sticky-note" style={{ bottom: '10%', right: '5%' }}>Lake house?</div>
-
+          <div className="sticky-note" style={{ top: '25%', left: '3%' }}><p>Campus: {userInfo?.campus}</p></div>
+          <div className="sticky-note" style={{ top: '2%', left: '20%' }}><p>Joined: {new Date(userInfo?.createdAt).toLocaleDateString()}</p></div>
+          <div className="sticky-note" style={{ bottom: '42%', right: '14%' }}><p>User ID: {userInfo?.id}</p></div>
+          
           {/* Decorative "MISSING" Poster */}
-          <div className="missing-poster">
+          <div className="missing-poster" style={{ transform: 'rotate(-7deg)', bottom: '9%', right: '10%' }}>
             <h2>MISSING</h2>
           </div>
         </div>

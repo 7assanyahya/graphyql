@@ -85,46 +85,70 @@ export const executeQuery = async (query, variables = {}, token) => {
   }
 };
 
-// GraphQL queries
+// Updated GraphQL queries from the new query.ts file
 export const QUERY_USER_INFO = `
-  query GetUserInfo {
+  query User {
     user {
+      auditRatio
+      auditsAssigned
+      campus
+      createdAt
+      discordId
+      discordLogin
+      email
+      firstName
+      githubId
       id
+      lastName
       login
+      profile
+      totalDown
+      totalUp
+      totalUpBonus
+      updatedAt
     }
   }
 `;
 
-export const QUERY_USER_XP = `
-  query GetUserXP {
-    transaction(where: {type: {_eq: "xp"}}, order_by: {createdAt: asc}) {
-      id
+export const QUERY_PROJECT_XP = `
+  query ProjectXP {
+    user {
+      login
+      xps(
+        order_by: { amount: desc },
+        where: { path: { _regex: "^/bahrain/bh-module/(?!piscine-js|checkpoint).*" } }
+      ) {
+        path
+        amount
+      }
+    }
+  }
+`;
+
+export const QUERY_USER_SKILLS = `
+  query Skills {
+    transaction(
+      where: { type: { _like: "skill%" } }
+      order_by: { progress: { updatedAt: desc } }
+    ) {
       amount
-      createdAt
+      originEventId
       path
-    }
-  }
-`;
-
-export const QUERY_USER_PROJECTS = `
-  query GetUserProjects {
-    progress(order_by: {createdAt: desc}) {
-      id
-      objectId
-      grade
-      createdAt
-      path
-    }
-  }
-`;
-
-export const QUERY_USER_AUDITS = `
-  query GetUserAudits {
-    transaction(where: {type: {_in: ["up", "down"]}}) {
-      id
       type
-      amount
-      createdAt
+    }
+  }
+`;
+
+export const QUERY_USER_EVENTS = `
+  query Events {
+    event_user(
+      where: { eventId: { _in: [72, 20, 250] } },
+      order_by: { level: desc }
+    ) {
+      level
+      userId
+      userLogin
+      eventId
     }
   }
 `;
