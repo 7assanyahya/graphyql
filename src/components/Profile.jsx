@@ -123,7 +123,7 @@ function Profile({ token, onLogout }) {
         <div className="board-layout">
           {/* Profile Photo with Overlay */}
           <div className="profile-photo-container">
-            <img src="/public/missing-person.jpg" alt={`${userInfo?.login}'s Photo`} className="profile-photo" />
+            <img src="./public/missing-person.jpg" alt={`${userInfo?.login}'s Photo`} className="profile-photo" />
             <div className="photo-overlay">?</div>
           </div>
 
